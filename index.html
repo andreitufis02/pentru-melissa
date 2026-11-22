@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>pentru Melissa</title>
+<meta name="theme-color" content="#05060b">
+<meta name="description" content="un buchet care nu se ofilește">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --accent: #c9d2ff; --bg: #05060b; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; background: var(--bg);
+    color: #e9e7f2; font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+    -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;
+    transition: background-color 1.2s ease;
+  }
+  canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  #glow { filter: blur(9px) saturate(1.35); opacity: .75; }
+  #vignette {
+    position: fixed; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 45%, transparent 45%, rgba(0,0,0,.55) 100%);
+  }
+  .pill {
+    position: fixed; top: calc(14px + env(safe-area-inset-top)); z-index: 5;
+    font: italic 17px/1 "Instrument Serif", Georgia, serif; color: #e9e7f2;
+    padding: 9px 16px 10px; border-radius: 999px; cursor: pointer;
+    background: rgba(12,14,24,.45); border: 1px solid rgba(255,255,255,.16);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    transition: border-color .3s, background .3s, opacity .8s;
+  }
+  .pill:hover { border-color: rgba(255,255,255,.4); background: rgba(30,34,52,.55); }
+  #again { left: calc(14px + env(safe-area-inset-left)); }
+  #topRight { position: fixed; z-index: 5; top: calc(14px + env(safe-area-inset-top)); right: calc(14px + env(safe-area-inset-right)); display: flex; gap: 8px; transition: opacity .8s; }
+  #topRight .pill { position: static; }
+  #musicBtn { min-width: 44px; text-align: center; font-style: normal; font-size: 15px; }
+  #musicBtn.off { opacity: .45; text-decoration: line-through; }
+  .hidden { opacity: 0 !important; pointer-events: none !important; }
+
+  #wpMenu {
+    position: fixed; z-index: 6; right: calc(14px + env(safe-area-inset-right));
+    top: calc(60px + env(safe-area-inset-top)); min-width: 250px;
+    background: rgba(12,14,24,.82); border: 1px solid rgba(255,255,255,.14); border-radius: 14px;
+    padding: 6px; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    transform-origin: top right; transition: opacity .25s, transform .25s;
+  }
+  #wpMenu.hidden { transform: scale(.96) translateY(-4px); }
+  #wpMenu button {
+    display: block; width: 100%; text-align: left; background: none; border: 0; color: #e9e7f2;
+    padding: 11px 12px; border-radius: 9px; cursor: pointer; font: 12px/1.35 "JetBrains Mono", monospace;
+  }
+  #wpMenu button:hover { background: rgba(255,255,255,.07); }
+  #wpMenu small { display: block; opacity: .5; font-size: 10.5px; margin-top: 2px; }
+  #wpMenu .t { font: italic 18px/1 "Instrument Serif", serif; }
+
+  #caption {
+    position: fixed; left: 0; right: 0; bottom: calc(22px + env(safe-area-inset-bottom));
+    text-align: center; pointer-events: none; z-index: 4; padding: 0 18px;
+    transition: opacity .9s ease;
+  }
+  #name {
+    font: italic clamp(26px, 3.4vw, 40px)/1.1 "Instrument Serif", Georgia, serif;
+    color: var(--accent); text-shadow: 0 0 22px color-mix(in srgb, var(--accent) 45%, transparent);
+    transition: color 1s, opacity .5s, filter .5s;
+  }
+  #msg {
+    margin-top: 9px; font-size: clamp(10px, 1.05vw, 12px); letter-spacing: .13em;
+    color: rgba(233,231,242,.62); transition: opacity .5s, filter .5s; min-height: 1.3em;
+  }
+  #dots { margin-top: 13px; display: flex; gap: 9px; justify-content: center; pointer-events: auto; }
+  #dots i {
+    width: 6px; height: 6px; border-radius: 50%; border: 1px solid rgba(255,255,255,.35);
+    display: block; transition: all .5s;
+  }
+  #dots i.seen { background: rgba(255,255,255,.35); }
+  #dots i.now { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px var(--accent); transform: scale(1.25); }
+  .swap { opacity: 0 !important; filter: blur(6px); }
+
+  #letterBtn {
+    left: 50%; top: auto; bottom: calc(118px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+    font-size: 15px; padding: 7px 14px 8px;
+  }
+
+  .overlay {
+    position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center;
+    flex-direction: column; text-align: center; padding: 28px; transition: opacity 1.1s ease;
+  }
+  #intro { background: radial-gradient(ellipse at center, rgba(10,12,22,.35), rgba(3,4,8,.92)); cursor: pointer; }
+  #intro .for { font: italic clamp(34px, 6vw, 60px)/1 "Instrument Serif", serif; margin-bottom: 30px; min-height: 1.1em; color: #f1eefb; }
+  #intro .line { font-size: clamp(11px, 1.4vw, 13px); letter-spacing: .1em; line-height: 2.1; color: rgba(233,231,242,.72); min-height: 2.1em; }
+  #intro .tap { margin-top: 38px; font-size: 10.5px; letter-spacing: .35em; text-transform: lowercase; opacity: 0; transition: opacity 1.2s; }
+  #intro .tap.on { opacity: .55; animation: breathe 2.6s ease-in-out infinite; }
+  @keyframes breathe { 50% { opacity: .2; } }
+  .cursor::after { content: "▍"; animation: blink 1s steps(1) infinite; opacity: .7; margin-left: 2px; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  #preview, #letter { background: rgba(3,4,8,.86); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  #preview img {
+    max-width: min(86vw, 900px); max-height: 66vh; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.14); box-shadow: 0 30px 80px rgba(0,0,0,.6);
+    -webkit-user-select: auto; user-select: auto; -webkit-touch-callout: default;
+  }
+  #preview .row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
+  #preview .row a, #preview .row button, #letter button {
+    position: static; display: inline-block; text-decoration: none;
+  }
+  #preview .hint { margin-top: 14px; font-size: 10.5px; letter-spacing: .08em; opacity: .5; max-width: 420px; line-height: 1.7; }
+  #letter .paper { max-width: 460px; text-align: left; }
+  #letter .paper p { font: italic clamp(20px, 2.6vw, 26px)/1.45 "Instrument Serif", serif; margin: 0 0 6px; color: #f1eefb; min-height: 1.45em; }
+  #letter .paper p.sig { margin-top: 18px; text-align: right; color: var(--accent); }
+  #letter button { margin-top: 30px; }
+  #busy { font-size: 11px; letter-spacing: .3em; opacity: .7; }
+</style>
+</head>
+<body>
+
+<canvas id="glow"></canvas>
+<canvas id="main"></canvas>
+<div id="vignette"></div>
+
+<button class="pill hidden" id="again" type="button">↻ înflorește iar</button>
+<div id="topRight" class="hidden">
+  <button class="pill" id="musicBtn" type="button" aria-label="sunet">♪</button>
+  <button class="pill" id="wpBtn" type="button">↓ wallpaper</button>
+</div>
+<audio id="song" src="fairytale.mp3" preload="auto"></audio>
+<div id="wpMenu" class="hidden" role="menu">
+  <button data-wp="phone" type="button"><span class="t">telefon</span><small>Galaxy S25 · 1080 × 2340</small></button>
+  <button data-wp="screen" type="button"><span class="t">laptop</span><small id="screenRes">ecranul tău</small></button>
+  <button data-wp="4k" type="button"><span class="t">laptop 4K</span><small>3840 × 2160</small></button>
+</div>
+
+<div id="caption" class="hidden">
+  <div id="name"></div>
+  <div id="msg"></div>
+  <div id="dots"></div>
+</div>
+<button class="pill hidden" id="letterBtn" type="button">✉ o scrisoare</button>
+
+<div class="overlay" id="intro">
+  <div class="for" id="introFor"></div>
+  <div id="introLines"></div>
+  <div class="tap" id="introTap">dă sunetul mai tare ♪ și atinge</div>
+</div>
+
+<div class="overlay hidden" id="preview">
+  <div id="busy">se pictează…</div>
+  <img id="previewImg" alt="wallpaper">
+  <div class="row">
+    <a class="pill" id="dlLink" download>↓ descarcă</a>
+    <button class="pill" id="closePrev" type="button">închide</button>
+  </div>
+  <div class="hint">pe telefon poți și să ții apăsat pe imagine → „salvează imaginea”. apoi Setări → Fundal.</div>
+</div>
+
+<div class="overlay hidden" id="letter">
+  <div class="paper" id="letterText"></div>
+  <button class="pill" id="closeLetter" type="button">înapoi la flori</button>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — aici schimbi textele, numele și culorile
+   ============================================================ */
+const CONFIG = {
+  name: "Melissa",
+  from: "Andrei",              // semnătura din scrisoare
+  seed: 1402,                  // schimbă numărul pentru alt aranjament al florilor
+
+  intro: [
+    "florile adevărate se ofilesc într-o săptămână.",
+    "așa că ți-am scris unele din litere —",
+    "care înfloresc de câte ori vrei tu."
+  ],
+
+  bouquets: [
+    { name: "Albastru & roz",   msg: "primul buchet. pe ăsta nu trebuie să-l pui în apă.",
+      pal: { bg:"#05060d", rose:["#1a2aa0","#7b97ff"], lily:["#b84a78","#ffc6dc"], cluster:["#2c43c4","#a9b9ff"],
+             center:["#8f6a2a","#ffe7a6"], breath:["#8d93ad","#ffffff"], leaf:["#2a5640","#a3d1b0"],
+             stem:["#1f4a35","#7ab38c"], wrap:["#2f3448","#cfd3e6"], ribbon:["#b97a8c","#ffdccf"], spot:["#6d1840","#e0608a"],
+             accent:"#c3ccff" } },
+    { name: "Miezul nopții",    msg: "pentru serile în care niciunul nu vrea să închidă primul.",
+      pal: { bg:"#04050c", rose:["#13237a","#5f80f5"], lily:["#7b83ad","#eef1ff"], cluster:["#1b2a86","#8396ff"],
+             center:["#6d7bb8","#dfe6ff"], breath:["#7c84a6","#f4f6ff"], leaf:["#1f4a3c","#86b9a4"],
+             stem:["#1b4032","#5e9a80"], wrap:["#2a2f44","#b9bfd8"], ribbon:["#3c4fa8","#a9b8ff"], spot:["#1d2a70","#6f86e6"],
+             accent:"#93a6ff" } },
+    { name: "Piersică",         msg: "dulce, ca felul în care râzi când încerci să nu râzi.",
+      pal: { bg:"#0b0606", rose:["#b8502f","#ffc2a0"], lily:["#d27d63","#ffe3d2"], cluster:["#d98852","#ffd4aa"],
+             center:["#a8642a","#ffe2a0"], breath:["#a8968a","#fff6ee"], leaf:["#4a5a34","#b9cf98"],
+             stem:["#3d5130","#94b077"], wrap:["#4a3d33","#efdcc6"], ribbon:["#b4664a","#ffb898"], spot:["#8a3a26","#e9876a"],
+             accent:"#ffc6a6" } },
+    { name: "Lavandă",          msg: "liniște. pentru zilele grele — să știi că sunt aici.",
+      pal: { bg:"#07050d", rose:["#55379a","#cfb8ff"], lily:["#8566c0","#f1e6ff"], cluster:["#6448bc","#bba8ff"],
+             center:["#a58ad8","#fff0ff"], breath:["#9a90b4","#ffffff"], leaf:["#3a5246","#a8c7b4"],
+             stem:["#2f463b","#86aa96"], wrap:["#38324a","#d9d0ea"], ribbon:["#8a6cc8","#e6d6ff"], spot:["#4a2a7a","#a07ae0"],
+             accent:"#d2c0ff" } },
+    { name: "Cireș",            msg: "roșu, pentru că unele lucruri nu trebuie explicate.",
+      pal: { bg:"#0b0405", rose:["#86101f","#ff5b70"], lily:["#b02d48","#ffb6c3"], cluster:["#9a172b","#ff7c8c"],
+             center:["#9a7a2a","#ffde8a"], breath:["#a38e90","#fff3f3"], leaf:["#244a2e","#8fc39a"],
+             stem:["#1d3f26","#6ea67b"], wrap:["#3a2a2b","#dccac2"], ribbon:["#9a7a2a","#ffd98a"], spot:["#5a0a16","#d0405a"],
+             accent:"#ff8b9b" } },
+    { name: "Lumină de lună",   msg: "alb, simplu. ca adevărul: ești preferata mea.",
+      pal: { bg:"#050608", rose:["#7f8499","#ffffff"], lily:["#959ab0","#fff8f0"], cluster:["#7a849f","#e9eeff"],
+             center:["#a8a080","#fff6d4"], breath:["#7d8294","#ffffff"], leaf:["#3f5a52","#b8d6cc"],
+             stem:["#33493f","#93b5a6"], wrap:["#34363f","#d8dae2"], ribbon:["#8a8fa6","#f2f4ff"], spot:["#6a6f84","#c9cee0"],
+             accent:"#eef1ff" } },
+    { name: "Grădina secretă",  msg: "ultimul. dacă ai ajuns aici, ai fost curioasă. îmi place asta la tine.",
+      pal: { bg:"#07040b", rose:["#a82a66","#ff92c4"], lily:["#cf7019","#ffd37e"], cluster:["#6237cc","#b9a2ff"],
+             center:["#c08a20","#fff0a8"], breath:["#a29ab0","#ffffff"], leaf:["#1f5a4a","#7fd3b8"],
+             stem:["#1c4a3c","#62b096"], wrap:["#33283e","#e4d6ee"], ribbon:["#1f8a88","#8ff0e4"], spot:["#7a1446","#e8508e"],
+             accent:"#ffa8d2" } }
+  ],
+
+  // muzica: momentele (în secunde) în care se întâmplă lucruri, aliniate pe piesă
+  music: {
+    src: "fairytale.mp3",
+    introLines: [1.2, 5.0, 9.0],   // când apar rândurile din intro
+    introOut: 14.9,                // intro-ul se stinge
+    bloomAt: 16.63,                // începe buchetul (intră tema)
+    chapters: [                    // buchetul se schimbă singur pe muzică (dacă ea nu atinge)
+      { at: 41.15, pal: 1 },
+      { at: 59.21, pal: 2, burst: true },  // punctul culminant
+      { at: 74.91, pal: 3 },
+      { at: 80.2, burst: true }
+    ],
+    outroAt: 92.65,
+    outro: { name: "pentru Melissa", msg: "de la Andrei — atinge oricând pentru alt buchet" }
+  },
+
+  finalLetter: [
+    "Melissa,",
+    "le-ai găsit pe toate șapte.",
+    "nu se ofilesc, nu trebuie udate,",
+    "și sunt ale tale de fiecare dată",
+    "când deschizi pagina asta.",
+    "orice zi ar fi, ai flori."
+  ]
+};
+
+/* ============================================================
+   utilitare
+   ============================================================ */
+const TAU = Math.PI * 2;
+const clamp = (v, a = 0, b = 1) => v < a ? a : v > b ? b : v;
+const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+const easeOut = t => 1 - Math.pow(1 - clamp(t), 3);
+const easeBack = t => { t = clamp(t); const c = 1.55; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function hash3(i, j, k) {
+  let x = Math.imul(i, 374761393) + Math.imul(j, 668265263) + Math.imul(k, 1274126177) | 0;
+  x = Math.imul(x ^ (x >>> 13), 1274126177); x ^= x >>> 16; return (x >>> 0) / 4294967295;
+}
+const SONG = {
+  dur: 114.78,
+  beats: [0.30,0.65,0.97,1.35,1.70,2.04,2.37,2.69,3.02,3.37,3.71,4.06,4.39,4.74,5.08,5.43,5.78,6.13,6.46,6.78,7.13,7.48,7.80,8.15,8.50,8.85,9.17,9.52,9.87,10.17,10.52,10.87,11.19,11.54,11.89,12.21,12.56,12.89,13.23,13.58,13.93,14.28,14.61,14.95,15.28,15.63,15.97,16.30,16.65,17.00,17.32,17.67,18.02,18.37,18.69,19.04,19.39,19.74,20.09,20.43,20.76,21.11,21.43,21.76,22.11,22.45,22.78,23.13,23.50,23.87,24.20,24.54,24.89,25.24,25.59,25.94,26.29,26.63,27.00,27.35,27.73,28.10,28.47,28.84,29.21,29.56,29.91,30.23,30.56,30.91,31.28,31.63,31.95,32.30,32.65,32.97,33.32,33.67,34.02,34.34,34.69,35.02,35.36,35.69,36.01,36.36,36.71,37.06,37.43,37.78,38.15,38.50,38.82,39.15,39.50,39.84,40.19,40.52,40.84,41.19,41.52,41.87,42.21,42.56,42.91,43.26,43.61,43.95,44.28,44.61,44.93,45.28,45.63,45.95,46.28,46.63,46.97,47.32,47.67,48.02,48.34,48.69,49.04,49.39,49.74,50.09,50.46,50.83,51.20,51.55,51.92,52.29,52.66,53.01,53.41,53.75,54.13,54.47,54.85,55.24,55.59,55.94,56.31,56.68,57.03,57.40,57.77,58.14,58.51,58.86,59.21,59.58,59.95,60.33,60.67,61.02,61.35,61.72,62.09,62.46,62.81,63.16,63.51,63.85,64.23,64.58,64.92,65.30,65.67,66.04,66.39,66.73,67.08,67.43,67.78,68.15,68.52,68.92,69.27,69.64,70.01,70.33,70.68,71.03,71.38,71.73,72.08,72.42,72.77,73.12,73.47,73.82,74.17,74.54,74.91,75.28,75.65,76.02,76.39,76.74,77.09,77.44,77.79,78.16,78.53,78.90,79.27,79.62,79.97,80.32,80.67,81.01,81.36,81.69,82.04,82.38,82.73,83.08,83.43,83.78,84.15,84.52,84.87,85.22,85.57,85.91,86.26,86.61,86.96,87.31,87.66,88.00,88.35,88.70,89.05,89.40,89.75,90.09,90.44,90.81,91.19,91.56,91.93,92.30,92.65,93.02,93.39,93.76,94.11,94.50,94.88,95.25,95.62,96.02,96.39,96.76,97.11,97.48,97.85,98.22,98.59,98.96,99.33,99.71,100.06,100.45,100.82,101.19,101.56,101.91,102.28,102.68,103.05,103.42,103.79,104.17,104.51,104.91,105.28,105.63,105.98,106.30,106.63,106.95],
+  accent: [1,1,1,.44,.55,.20,1,1,1,.43,.36,.19,1,.90,1,.43,.44,.25,.90,.61,1,.39,.49,.82,1,.40,.65,.36,.44,.45,.37,.34,.62,.35,.40,.59,.58,.37,.60,.61,.51,.29,.60,.47,.36,.34,.45,.68,.71,.45,.46,.45,.32,.36,.34,.39,.38,.40,.32,.44,.55,.48,.46,.45,.41,.45,.38,.42,.47,.43,.38,.41,.53,.34,.34,.32,.37,.39,.38,.35,.41,.31,.38,.40,.33,.39,.40,.36,.35,.36,.36,.36,.38,.39,.55,.39,.41,.39,.47,.42,.32,.42,.36,.34,.30,.45,.45,.45,.32,.40,.34,.59,.40,.73,.53,.43,.29,.77,.73,.77,.52,.36,.39,.48,.39,.44,.47,.40,.41,.42,.39,.37,.35,.42,.36,.29,.30,.32,.34,.32,.38,.29,.26,.22,.77,.71,1,.56,.84,.64,.33,1,.66,.43,.54,.51,.35,.75,.69,.44,.49,.62,.50,.48,.59,.41,.41,.49,.59,.38,.68,.39,.46,.40,.37,.32,.39,.37,.35,.37,.32,.31,.34,.32,.34,.31,.27,.31,.29,.32,.34,.31,.36,.29,.35,.61,.38,.33,.35,.38,.71,.29,.24,.35,.30,.38,.30,.30,.33,.30,.33,.29,.47,.60,.55,.48,.48,.41,.38,.52,.46,.38,.38,.35,.27,.63,.46,.32,.35,.38,.34,.38,.41,.42,.37,.41,.39,.43,.50,.44,.34,.39,.49,.47,.37,.40,.35,.34,.32,.38,.35,.39,.37,.40,.36,.36,.41,.38,.55,.40,.47,.37,.43,.34,.53,.44,.66,.33,.37,.35,.46,1,1,.45,.38,.30,1,1,1,.42,.64,.25,1,1,1,.77,.49,.19,.51,.69,1,.40,.58,.14,.45,.66,1,.66,.53,.20,.20,.20,.26,1],
+  energy: "AAABBCCCCCCCCDDDDDEFGGGGFEDDCCCCCCCCCBBBBBBBBCCDEGHIJJJIIHIJJKLKJIGFEEDDDCCCCCCBBBBBBBCCCDDCCDDDDDDEFFGHGGFEDCCCCCCCCDDDDDDDCCCCDEFGHIJJJIIHHIIIIIHGGFEEEEEEEFFFFGHIJKMNPQRRSSSSSRQQQQRSSTUTTTSQPONNMNOPQSTTTTSRRQQPONNNNNNMMMMNOPQRRRRQPONMMLLMMMNNNNOPPRSTUUUUUUUTSRRSTTUVUUVVWWVTSRRSSSRQPPOOONNMMMLKKJKKLLLLMNPQRRQPPOOOPOOONMNNNONNOOPQRQQPQRSUUUUUUVWWWWVWYbegilnoqstttsrqqqqrsssrnjfbZabccbZXXadgjjgcZXWXYZaaZXWVUVWXYZYXUSRRRRSSSSSSSSTUWYbeggeddefgiigefecbccbZYXWWWXXXXYZZabcdcaXVTTTUTTTTSSTSSTTTSSSSSTUVWXXXWWXYYZZZYZZYXWVUUUUWXYZZYXXWWWWWWXXYZZZZXWUVWWWWVTSSSSSTUVVVUTSSSSTTTTSSSUWYabbZXWWWXZZZaaaZZYYYWWVVVXZbeghhhgecbaacegihfcaZZZZXVWWXZbbcdcaXVTUWZcdcbaYYabbcccefhgfedccdeeffedcbZZYYXXXZbcddbabbeghgfecbcddbbbcdeefeedcZXWWVUVVWWWWVVVVUWWXZbbbbaZZYYXWWVUUWXXYYWVUTSSRSSSSRQQPPPPPOPOOOOMLKJJJJJIJJJJKKKKKKKKKKKKKKKKKKKKKJIIIIJKLMNOPRTVWXYYXYZZYXWTSSTTVVVWWVVWWXYYYXXWVUUVXadfhihhgfdcdegijjkllkigdbZZaceghijjhebYWVWWWWWWVVWWWWVUTTSSSSSSSSTUVVUTSRQONNNOPPPOMLLLLKKJJIIIIIIHHGGGGGFEEEEDDDDDDDDDDDDDEEFFGGHHHHHHHHHIIJKLNOOPPPPPPPOONNOPQRRQPNLKJIIIJLMNNNMLLLKKKJJJJKKLLLLLKKKLLKKKKKJJIHGGGGHHIIIIIIIIIJJJJKKLLLLMNOPQQQPPPPQRSSRRQQQPOOOOOPPPPOOOOOONNMLLLLMMNOOONNNNMMLKKJJJIHHIIJKKLLLLLKJJJJKLMOQSTUVVWWWVUUTTTTTUUWXXYZaZZZYYXXWWVVVVWWYZaabbdfilmnmmljihgfffhjnqrsrokigffhklnnmmpsvxxuqnljigfeeghhhgecaZYYYZabdegghhggedaYXWVYcfjmnligedefffedcbaaZYXWVUTTTTTSRQPPPPQRTVXafkosvtojfdddddcbbceghgecbaZYXVTTSRQRRTYekorqnllmmnnkigggggfecbaZXWVUTSRQPPPPQQRSSRRRSSTVUUWbgmpqnjeccdeffdcccdcbZXXWVUUSRRQPPOPPQQRQQRSUXaehkmmlkifecaabcdeffgijjjgcYXXYbehihgfdccccdddfghiklmkjifdcbZXVTTUVWXWUTSTUWXXWXYZaaaZabdfhknqrqomjgdbbbcceffgghggilkklkijkkjlpuz21zxuvwvurnopmmlgcddchnonlgZXXXXZYafimrrrspmkhdcdffhlnoonjgdcbcdeghhhhgfedcabdfikmpqqqqponkigfefghijjhffeddbaZYYXXZcfiihgfffecdeghhgecaaaabccbaZYYYYYYYXXWWXXYZZZZYXXXZcfhhgdaXWVVUVVWWXWVVVUUUTTTTTTUVWWVVUTTTSQPOOPQQRQPONMLLLLMNPSUVUSQOMMLLKKKJJJIIIIHHGGFFFFFFEEEEEEEEEEEEEEEEFFGGGGGFFFGGGHHHGGGFFEEDDDCCCCCBBBBBBBBCCCDDDEEEEEEEEEEEEFFEEEEDDCCCCBBBBBBBBBBBBBBBCCDDDEFFGGGFFFFGGHHHGGGFFFEEDDDCCCCCBBBBBBBBBCCDDDDDDDDDDDEFGGGGGFFEEEEEEEDDCCCCCCCCBBBBBBBCCCCCCCCDDDEEEEEFFGGGGFFEEDDDDDDCCCCCBBBBBBBBCCCCCCCCCCDDDDCCDEFFGGGGGGFFGGHIJJKKKKJJIHHIJKMNOPPPPONNMLKKJJJJIIIHHHHGGGGGFFFEEEDDDDDDDDDDDDDCCCCCCCCCCCCCCCBBBBBBBBBBBBBBBBBBBBBBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+  flux: "AABAAA/FEKIHK/DIIKIP/DIIHLHSHJHIJIXGFGIIGIGFIFJxJGGFJLwGHMIJhqEJLGGLSFIJMGMPJJIHIFGJEFFP/IIIIJVmGKKJI0tHMMILLSEIKLTTQJIPLJJKJKHMNmLLLLKVaJKNNO/VIJMKMOQJLPQJUQQMMOViNKPNMQ3PPNTMNRROQPJbPNMPJPMPLLLOPSSL0NMTSMONLQOOONIUNOOLNSMMaOOKNNPOJMQILNRLNONLZSOMNNKZWOIRMOPPMKPLSZPLPLPNZLJMLMLVMIOMMKKJRiINZPNQKNUTNKMTPLPTMJLOLKKLOKKTOKMMNOcOMOLONeUMNPTQSPLPOOOTOPLKTMNPLLONOMLNNMPOONKPLLOLNLQLOQMMNPOJQMPOLMRQMJPMNMNMLLOLLSMMNPNXSPMNOUUHNSNQTROQNSRNTNJQNRPPNOSMLTLLMROQPPMOMNPSOPRTNTUOOPPLSNONROQQQONPQQRPLNUPWOULPLRLOONPMRONNOMOLMNNMJNNNOPMNNRNMQIMNRQQMONMNNPKNOOONORMKNNMMJNLLNPMMQMRQNPNPRQULOPNNOOOPNMQQLNONMRQOMOPPOORMNLPOONNKNPPPOONPLONLRMOPJMPMNOQJPPJKOQOTMRQMXQPPKQQPOPPNKRKPPQLQLPPNOLSUOMKRMNSKPRMNMNNOLRNPSLOONLPOPMTMNONNMOLMNNQPLNTSOWLNKNTPNPTMTOSOMOMLNMNPMMRNMOLQMOLLPMKPIZRMOLNLRQKRILfJOKQHKWJKKKIKSJLLLFIMOLKKGgXJKLLNePJIKLRgPSOLNWNMKORNOPPNLROORKLQPKUNOLRONQNNLPOMSNOPMONURMPLQORJNMOPROOTOMNSONLSNNQMQOOKQMMLNPPJNPNPNPSLNTMOPIQNLOMMMNPMNLINPMLMOKNLNOPOLNNNGONMNJOKNLQKNKILKMLJHPHHLKKHHIJIHGGKKKgKIKHHOeHIKJKMuOLIONLYWKMMLKOjGKKOOKbOMPMMOLORNOPPVqJQMNOOcNJLOKMSQMOMMMMWJMRLMKVMLKLKJLPMMMNKQgKMNKONdMKMMMONSMONLLNUKQNPLNaNKOLMNVTLLRPNPULNQQNSZKJMKPMRLOMNNJNRKMNOMKVNMLPMJZLLNPLLQQMJNNQWcQMOQLPQNIQONMKTPNKMROQOPNNLNQPKLMNNMLNKNJQMOMMMPQPMQMMPLOQLMOPOKPPPQPNONOKKPNNMSMNMOOONQNNNMNQMMJMNOLOMQLNINMRMJKLNLOKKJNLLLMPJMJNKOaMLNJQINJJOINKLNMKMKNJNMPLOJMJMLKMNMPOLLMLOMNaKKNKLMQMPMIKKMOKMJMMJPJKMMKQMMOJLKMIeMJJLKMLVNLKKKKLKJKKPJMNMKNLLLMNKQPKKPOOLLMNMOPJNLOLMYIOMLOMLLJNGKGNLOJLJGLMIJHJGILUTPQQQZSSLOORRXVNPOLMPPUKOONOMULPMMOPROOMJMKLQONLSOWOPRNPPRTONLRKQLPOOLQLQMOMOMNMPPONMLJLRSOOMOaSPNMPOTTRNONNNMNROOPJNMRMNOQOQRMKLONROTNPQOMLVPRRNKLUNOSKMONQOKOQLPNRPMSLMQQOQRJOSNPTONSVSUNOOSOSTPNOOOLOMQOPKPQPNOQMOVQONOOLUPNNNNQMMOLPMNNRRNLQMPMQONONOOOMNOLNNSOQLNQJTTMNPMOOMOQLLQNTQQPMOOLONLRNPOMPOKSMNQMOPMOJMPQRRPSNKQQMQMROSXLPKQLRMONTJNKQULPKQLOMQLOQNNKSROPNOKOPQOROUWPPNROISQNSLQPMcJRMQOMNONOQQMQOLKNMOPLOPMNTMTTIPORMOqMJMPIPtOLKOLOLTMLKJMJOQHMJNKMJNGMHJH/GJLIKJsKIMIIMJ/GHKIJIKSILJHNIbGLILIKKGIIKGHwTFJLKJK3GKLILI/JGLJIJIgIGKJLHVRHLGIIIHKGHFIJVIIIHJHdOGJKJGW4HIIHGJQRIJIHHJZIGJGGFGGHFGHGTJHJGHJIcFHKGII/KGJIJJIcFGJGHGWKFIGEGIGFFGFIFJdHGIHIGKMaHLKHKMLN2JKMLNKNKLMMMOFJNMKLJJMLLJLLNLMINHJKKIIOJKKKMIKLHKJJHILHLJGLHHKGJKGMJGJIGIKFJHKJIIJIHIJHHHHKIIGJIFJJHJHIIGIJGGGHHFEHFGHFFGFFFHFCEEECDCDCDBCBBBAAAAAAAAAAAAAAA"
+};
+const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+const decodeEnv = str => Float32Array.from(str, c => B64.indexOf(c) / 63 * 1.5);
+const ENV = decodeEnv(SONG.energy), FLUX = decodeEnv(SONG.flux);
+function envAt(arr, t) {
+  if (t < 0 || t >= SONG.dur) return .12;
+  const x = t * 20, i = Math.floor(x), f = x - i;
+  return (arr[i] || 0) * (1 - f) + (arr[i + 1] || 0) * f;
+}
+function lastBeat(t) { // căutare binară: ultimul beat <= t
+  let lo = 0, hi = SONG.beats.length - 1, r = -1;
+  while (lo <= hi) { const m = (lo + hi) >> 1; if (SONG.beats[m] <= t) { r = m; lo = m + 1; } else hi = m - 1; }
+  return r;
+}
+function snapToBeat(t) {
+  const i = lastBeat(t), b = SONG.beats;
+  if (i < 0) return b[0];
+  if (i >= b.length - 1) return b[i];
+  return t - b[i] < b[i + 1] - t ? b[i] : b[i + 1];
+}
+const FX = { amp: 1, pulse: 0 }; // efecte muzicale globale (0 la exportul de wallpaper)
+const hexRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+
+/* ============================================================
+   tipuri de celule + rampe de caractere
+   ============================================================ */
+const K = { NONE:0, ROSE:1, LILY:2, CLUSTER:3, CENTER:4, BREATH:5, LEAF:6, STEM:7, WRAPB:8, WRAPF:9, RIBBON:10, SPOT:11 };
+const KIND_COLOR = [null, "rose", "lily", "cluster", "center", "breath", "leaf", "stem", "wrap", "wrap", "ribbon", "spot"];
+const KIND_DIM   = [1, 1, 1, 1, 1, 1, 1, 1, .5, 1, 1, 1];
+const RAMP = {
+  [K.ROSE]:    ".,:-~=+*xo0%#@",
+  [K.LILY]:    ".,:-~=+*o%#@",
+  [K.CLUSTER]: ".:-=+*o0%@",
+  [K.CENTER]:  ".:*o0@",
+  [K.BREATH]:  ".·*o",
+  [K.LEAF]:    ".,:;=+*#%",
+  [K.STEM]:    ".:|",
+  [K.WRAPB]:   " .,:-~",
+  [K.WRAPF]:   ".,-~:=+*",
+  [K.RIBBON]:  "-~=+*#%@",
+  [K.SPOT]:    ".:o*"
+};
+const LV = 8; // nivele de luminozitate per culoare
+
+/* ============================================================
+   scena — buchetul generat procedural (coordonate „lume”)
+   ============================================================ */
+const G = { x: 0, y: 0.36 };   // punctul unde se adună tulpinile
+const WRAP = { y0: 0.22, y1: 1.38, w0: 0.80, w1: 0.05 };
+
+function buildScene(seed) {
+  const R = mulberry32(seed);
+  const flowers = [];
+  const queue = [];
+  for (let n = 0; n < 2600 && flowers.length < 20; n++) {
+    const a = R() * TAU, d = n === 0 ? 0 : Math.sqrt(R());
+    const x = Math.cos(a) * d * .84, y = -.2 + Math.sin(a) * d * .54;
+    const fill = n > 1200;
+    const r = n === 0 ? .26 : fill ? .14 + R() * .04 : .2 + R() * .06;
+    if (flowers.some(f => Math.hypot(f.x - x, f.y - y) < (f.r + r) * (fill ? .82 : .72))) continue;
+    flowers.push({ x, y, r, rot: R() * TAU, seed: R() * 7, ph: R() * TAU, n: R() < .5 ? 6 : 5, tone: (R() - .5) * .2 });
+  }
+  // tipurile se împart uniform după unghi, ca să nu se adune toate crinii într-o parte
+  const pattern = ["rose", "lily", "rose", "cluster", "lily", "rose", "lily", "rose", "cluster"];
+  flowers.sort((p, q) => Math.atan2(p.y + .22, p.x) - Math.atan2(q.y + .22, q.x));
+  const off = (R() * pattern.length) | 0;
+  flowers.forEach((f, k) => {
+    f.type = Math.hypot(f.x, f.y + .22) < .2 ? "rose" : pattern[(k + off) % pattern.length];
+    if (f.type === "lily") f.r *= 1.12;
+    if (f.type === "rose") {
+      f.petals = [];
+      const rings = [[5, .5, .5], [5, .34, .4], [4, .2, .3], [3, .09, .2]];
+      rings.forEach(([n, d, pr], ri) => {
+        const o = R() * TAU;
+        for (let q = 0; q < n; q++) f.petals.push({ a: o + q / n * TAU + (R() - .5) * .3, d: d * (.9 + R() * .2), pr: pr * (.92 + R() * .16), ring: ri });
+      });
+      f.petals.reverse(); // interiorul deasupra
+    }
+    if (f.type === "cluster") {
+      f.r *= .72;
+      f.florets = [];
+      for (let t = 0; t < 400 && f.florets.length < 15; t++) {
+        const fa = R() * TAU, fd = Math.sqrt(R()) * .78, fr = .2 + R() * .08;
+        const fx = Math.cos(fa) * fd, fy = Math.sin(fa) * fd;
+        if (f.florets.every(o => Math.hypot(o.x - fx, o.y - fy) > (o.r + fr) * .85)) f.florets.push({ x: fx, y: fy, r: fr, a: R() * TAU });
+      }
+      f.florets.sort((p, q) => Math.hypot(p.x, p.y) - Math.hypot(q.x, q.y));
+    }
+  });
+  flowers.forEach(f => {
+    const d = Math.hypot(f.x, (f.y + .2) * 1.4);
+    f.start = 1.0 + d * 1.35 + R() * .35;
+    f.flex = clamp(Math.hypot(f.x - G.x, f.y - G.y), .35, 1.2);
+  });
+  flowers.sort((a, b) => a.y - b.y);
+
+  const leaves = [];
+  for (let k = 0; k < 17; k++) {
+    const a = (k / 17) * TAU + R() * .3;
+    const bx = Math.cos(a) * .74, by = -.2 + Math.sin(a) * .5;
+    if (by > .3) continue;
+    const ang = Math.atan2(Math.sin(a) * .9 - .25, Math.cos(a)) + (R() - .5) * .5;
+    const L = .2 + R() * .14;
+    leaves.push({ x: bx, y: by, ang, L, W: L * (.26 + R() * .06), euc: R() < .35, start: .7 + R() * 1.3, ph: R() * TAU });
+  }
+  for (const s of [-1, 1]) for (let k = 0; k < 2; k++) {
+    const L = .2 + R() * .1;
+    leaves.push({ x: s * (.38 + k * .22), y: .2 - k * .05, ang: s > 0 ? -.35 - k * .3 : Math.PI + .35 + k * .3, L, W: L * .28, euc: k === 1, start: .6 + R() * .6, ph: R() * TAU });
+  }
+  leaves.forEach(l => l.flex = clamp(Math.hypot(l.x - G.x, l.y - G.y), .35, 1.2));
+
+  const breath = [];
+  for (let k = 0; k < 34; k++) {
+    const a = R() * TAU, d = Math.pow(R(), .45);
+    const x = Math.cos(a) * d * .95, y = -.22 + Math.sin(a) * d * .64;
+    const dots = [];
+    const n = 3 + (R() * 4 | 0);
+    for (let q = 0; q < n; q++) dots.push({ dx: (R() - .5) * .11, dy: (R() - .5) * .08, ch: "·*o°"[R() * 4 | 0], ph: R() * TAU });
+    breath.push({ x, y, dots, start: 2.3 + R() * 1.6, ph: R() * TAU, flex: clamp(Math.hypot(x - G.x, y - G.y), .35, 1.2) });
+  }
+
+  const stars = [];
+  for (let k = 0; k < 170; k++) stars.push({ x: R(), y: R(), ch: ".·.·+*"[R() * 6 | 0], a: .06 + R() * .32, ph: R() * TAU, sp: .4 + R() * 1.4 });
+
+  return { flowers, leaves, breath, stars };
+}
+
+/* ============================================================
+   grila de caractere
+   ============================================================ */
+function makeLayout(W, H, S, cx, cy, fontPx, measureCtx) {
+  measureCtx.font = `${fontPx}px "JetBrains Mono", ui-monospace, monospace`;
+  const cw = measureCtx.measureText("M").width || fontPx * .6;
+  const ch = fontPx * 1.08;
+  const cols = Math.ceil(W / cw), rows = Math.ceil(H / ch);
+  const L = { W, H, S, cx, cy, fontPx, cw, ch, cols, rows,
+    wx: new Float32Array(cols), wy: new Float32Array(rows),
+    val: new Float32Array(cols * rows), inUsed: new Uint8Array(cols * rows), kind: new Uint8Array(cols * rows), chr: new Uint16Array(cols * rows),
+    used: [] };
+  for (let i = 0; i < cols; i++) L.wx[i] = (i * cw + cw / 2 - cx) / S;
+  for (let j = 0; j < rows; j++) L.wy[j] = (j * ch + ch / 2 - cy) / S;
+  return L;
+}
+let Lc; // layout curent pentru rasterizare
+function forCells(x0, y0, x1, y1, fn) {
+  const L = Lc;
+  const i0 = Math.max(0, Math.floor((L.cx + x0 * L.S) / L.cw)), i1 = Math.min(L.cols - 1, Math.ceil((L.cx + x1 * L.S) / L.cw));
+  const j0 = Math.max(0, Math.floor((L.cy + y0 * L.S) / L.ch)), j1 = Math.min(L.rows - 1, Math.ceil((L.cy + y1 * L.S) / L.ch));
+  for (let j = j0; j <= j1; j++) { const wy = L.wy[j], row = j * L.cols; for (let i = i0; i <= i1; i++) fn(i, j, L.wx[i], wy, row + i); }
+}
+function put(idx, v, k, c = 0) {
+  const L = Lc;
+  if (!L.inUsed[idx]) { L.inUsed[idx] = 1; L.used.push(idx); }
+  L.val[idx] = v; L.kind[idx] = k; L.chr[idx] = c;
+}
+function erase(idx) { Lc.kind[idx] = 0; }
+function putAt(x, y, v, k, c = 0) {
+  const L = Lc;
+  const i = Math.floor((L.cx + x * L.S) / L.cw), j = Math.floor((L.cy + y * L.S) / L.ch);
+  if (i < 0 || j < 0 || i >= L.cols || j >= L.rows) return;
+  put(j * L.cols + i, v, k, c);
+}
+
+/* ---------- mișcare ---------- */
+function swayAngle(el, t, lean) {
+  return (0.032 * Math.sin(0.62 * t + el.ph) + 0.012 * Math.sin(1.37 * t + el.ph * 1.7)) * el.flex * FX.amp + lean * el.flex;
+}
+function rotAround(x, y, a) {
+  const dx = x - G.x, dy = y - G.y, c = Math.cos(a), s = Math.sin(a);
+  return [G.x + dx * c - dy * s, G.y + dx * s + dy * c];
+}
+const bez = (p0, p1, p2, t) => (1 - t) * (1 - t) * p0 + 2 * (1 - t) * t * p1 + t * t * p2;
+
+/* ---------- elemente ---------- */
+function drawStem(x2, y2, g, extraDown = true) {
+  const x0 = G.x + x2 * .07, y0 = G.y, x1 = x2 * .5, y1 = (y2 + G.y) / 2 + .06;
+  const len = Math.hypot(x2 - x0, y2 - y0) * 1.1;
+  const n = Math.ceil(len * Lc.S / Math.min(Lc.cw, Lc.ch) * 1.4);
+  for (let q = 0; q <= n * g; q++) {
+    const t = q / n;
+    const x = bez(x0, x1, x2, t), y = bez(y0, y1, y2, t);
+    const dx = bez(x0, x1, x2, t + .01) - x, dy = bez(y0, y1, y2, t + .01) - y;
+    const c = Math.abs(dx) < Math.abs(dy) * .4 ? 124 : (dx * dy > 0 ? 92 : 47);
+    putAt(x, y, .55, K.STEM, c);
+  }
+  if (extraDown) {
+    const xb = x2 * .02;
+    const m = Math.ceil((1.05 - y0) * Lc.S / Lc.ch);
+    for (let q = 0; q <= m; q++) { const t = q / m; putAt(x0 + (xb - x0) * t, y0 + (1.05 - y0) * t, .45, K.STEM, 124); }
+  }
+}
+
+function rasterRose(f, x, y, b, t) {
+  const R = f.r * (1 + .015 * Math.sin(t * 1.1 + f.ph) + .045 * FX.pulse);
+  if (b <= 0) return;
+  const rot = f.rot + .06 * Math.sin(t * .4 + f.ph) + (1 - b) * 1.2;
+  const P = f.petals, np = P.length;
+  const spread = Math.pow(b, .8), grow = .35 + .65 * b;
+  const px = new Float32Array(np), py = new Float32Array(np), pr = new Float32Array(np), ux = new Float32Array(np), uy = new Float32Array(np);
+  for (let q = 0; q < np; q++) {
+    const p = P[q], a = p.a + rot + (1 - b) * p.ring * .6;
+    const d = p.d * spread * R;
+    ux[q] = Math.cos(a); uy[q] = Math.sin(a);
+    px[q] = x + ux[q] * d; py[q] = y + uy[q] * d;
+    pr[q] = p.pr * R * grow * (p.ring === 0 ? clamp(b * 1.5) : 1);
+  }
+  const Ro = R * 1.12;
+  forCells(x - Ro, y - Ro, x + Ro, y + Ro, (i, j, wx, wy, idx) => {
+    for (let q = 0; q < np; q++) {
+      const dx = wx - px[q], dy = wy - py[q];
+      const dd = Math.hypot(dx, dy), rr = pr[q];
+      if (rr <= 0 || dd > rr) continue;
+      const qn = dd / rr;
+      const dir = dd > 1e-6 ? (dx * ux[q] + dy * uy[q]) / dd : 0;
+      const ring = P[q].ring;
+      let v = .2 + .5 * qn * (.55 + .45 * dir) + ring * .07;
+      if (qn > .84 && dir > -.3) v = .88 + .12 * (qn - .84) / .16;
+      else if (qn > .9) v = .1;
+      if (ring === 3) v = .3 + .4 * (1 - qn);
+      v *= .9 + .18 * clamp(-((wx - x) + (wy - y)) / (R * 1.4), -1, 1);
+      put(idx, clamp(v + f.tone), K.ROSE);
+      return;
+    }
+    const r = Math.hypot(wx - x, wy - y) / R;
+    if (r < 1.12) erase(idx);
+  });
+}
+
+function rasterLily(f, x, y, b, t) {
+  const R = f.r * (.3 + .7 * easeOut(b)) * (1 + .012 * Math.sin(t * 1.3 + f.ph) + .05 * FX.pulse);
+  if (b <= 0) return;
+  const n = f.n, sector = TAU / n;
+  const rot = f.rot + .05 * Math.sin(t * .35 + f.ph);
+  const open = .35 + .65 * b;
+  forCells(x - R, y - R, x + R, y + R, (i, j, wx, wy, idx) => {
+    const dx = wx - x, dy = wy - y;
+    const r = Math.hypot(dx, dy) / R; if (r > 1.08) return;
+    const th = Math.atan2(dy, dx) - rot;
+    const k = Math.round(th / sector), phi = th - k * sector;
+    const len = (((k % 2) + 2) % 2) ? .84 : 1;
+    const u = r / len;
+    if (r < .15) { put(idx, .45 + .4 * (1 - r / .15), K.CENTER); return; }
+    const hw = sector * .5 * Math.pow(Math.sin(Math.PI * Math.min(u, 1)), .7) * (1 - .3 * u) * open;
+    const a = Math.abs(phi);
+    if (u > 1 || a > hw) { if (u < 1.08 && a < hw + .12) erase(idx); return; }
+    const e = a / hw;
+    let v = .42 + .38 * (1 - e);
+    if (e > .78) v = .82;
+    if (u > .86) v *= .85;
+    if (u > .18 && u < .55 && e < .7 && hash3(i, j, 7) < .2) { put(idx, .75, K.SPOT); return; }
+    put(idx, clamp(v + f.tone), K.LILY);
+  });
+  // stamine
+  if (b > .5) {
+    const sl = R * .62 * (b - .5) * 2;
+    for (let k = 0; k < n; k++) {
+      const a = rot + (k + .5) * sector;
+      const m = Math.max(2, Math.ceil(sl * Lc.S / Lc.ch));
+      for (let q = 1; q <= m; q++) {
+        const tt = q / m, px = x + Math.cos(a) * sl * tt, py = y + Math.sin(a) * sl * tt;
+        putAt(px, py, q === m ? .95 : .45, K.CENTER, q === m ? (k % 2 ? 111 : 42) : 183);
+      }
+    }
+  }
+}
+
+function rasterCluster(f, x, y, b, t) {
+  const R = f.r * (1 + .015 * Math.sin(t + f.ph) + .05 * FX.pulse);
+  if (b <= 0) return;
+  const fl = f.florets, nF = fl.length;
+  forCells(x - R, y - R, x + R, y + R, (i, j, wx, wy, idx) => {
+    const lx = (wx - x) / R, ly = (wy - y) / R;
+    if (lx * lx + ly * ly > 1.1) return;
+    for (let q = 0; q < nF; q++) {
+      const o = fl[q], fb = clamp(b * 1.8 - q / nF * .8);
+      if (fb <= 0) continue;
+      const ox = lx - o.x, oy = ly - o.y, d = Math.hypot(ox, oy), rr = o.r * easeBack(fb);
+      if (d > rr) continue;
+      const th = Math.atan2(oy, ox) + o.a + t * .05;
+      const lim = rr * (.55 + .45 * Math.abs(Math.cos(2 * th)));
+      if (d > lim) continue;
+      if (d < rr * .22) { put(idx, .85, K.CENTER); return; }
+      put(idx, clamp(.4 + .55 * (d / lim)), K.CLUSTER); return;
+    }
+  });
+}
+
+function rasterLeaf(l, x, y, ang, g, t) {
+  const L = l.L * easeOut(g), W = l.W * easeOut(g);
+  if (L < .01) return;
+  const ca = Math.cos(ang), sa = Math.sin(ang);
+  const ex = x + ca * L, ey = y + sa * L;
+  const pad = W + .02;
+  forCells(Math.min(x, ex) - pad, Math.min(y, ey) - pad, Math.max(x, ex) + pad, Math.max(y, ey) + pad, (i, j, wx, wy, idx) => {
+    const dx = wx - x, dy = wy - y;
+    const a = dx * ca + dy * sa, bb = -dx * sa + dy * ca;
+    const tt = a / L; if (tt < 0 || tt > 1) return;
+    if (l.euc) {
+      for (let q = 0; q < 4; q++) {
+        const p = .2 + q * .26, cr = W * (1.05 - q * .12);
+        const off = (q % 2 ? 1 : -1) * W * .5;
+        const d = Math.hypot(a - p * L, bb - off);
+        if (d < cr) { put(idx, clamp(.35 + .5 * (d / cr)), K.LEAF); return; }
+      }
+      if (Math.abs(bb) < W * .12) put(idx, .4, K.STEM, 183);
+      return;
+    }
+    const hw = W * Math.pow(Math.sin(Math.PI * tt), .8) * (1 - .25 * tt);
+    const e = Math.abs(bb) / hw; if (e > 1) return;
+    let v = .35 + .35 * (1 - e);
+    let vein = tt * 6 + e * 1.6; vein -= Math.floor(vein);
+    if (vein > .85) v += .2;
+    if (e < .14) v = .85;
+    if (e > .82) v = .7;
+    put(idx, clamp(v), K.LEAF);
+  });
+}
+
+function rasterWrap(bt, t, back) {
+  const { y0, y1, w0, w1 } = WRAP;
+  const reveal = easeOut(bt / 1.1);
+  if (reveal <= 0) return;
+  const cut = y1 - (y1 - y0 + .25) * reveal;
+  forCells(-w0 - .02, y0 - .08, w0 + .02, y1 + .02, (i, j, x, y, idx) => {
+    if (y < cut) return;
+    const hw = w0 + (w1 - w0) * ((y - y0) / (y1 - y0));
+    if (Math.abs(x) > hw) return;
+    const xn = x / w0;
+    const yTop = y0 - .07 * (1 - xn * xn) + .012 * Math.sin(x * 46);
+    const yF = .3 + .27 * (1 - xn * xn) + .012 * Math.sin(x * 55 + 1);
+    const phi = Math.atan2(x, y1 + .05 - y);
+    const pleat = Math.pow(.5 + .5 * Math.sin(phi * 17 + 2 * Math.sin(phi * 5)), 2);
+    if (back) {
+      if (y < yTop || y > yF) return;
+      put(idx, clamp(.3 + .45 * pleat), K.WRAPB);
+    } else {
+      if (y < yF) return;
+      let v = .28 + .38 * pleat + .12 * (-xn);
+      if (y - yF < .035) v = .95;
+      if (hw - Math.abs(x) < .025) v = Math.max(v, .75);
+      put(idx, clamp(v), K.WRAPF);
+    }
+  });
+}
+
+function rasterRibbon(bt, t) {
+  const a = clamp((bt - .8) / .8); if (a <= 0) return;
+  const { y0, y1, w0, w1 } = WRAP, yR = .98;
+  const hwAt = y => w0 + (w1 - w0) * ((y - y0) / (y1 - y0));
+  forCells(-.45, yR - .14, .45, yR + .05, (i, j, x, y, idx) => {
+    const yb = yR + .015 * Math.sin(x * 12);
+    if (Math.abs(y - yb) < .03 && Math.abs(x) < hwAt(y)) { put(idx, clamp((.55 + .3 * Math.sin(x * 40)) * a), K.RIBBON); return; }
+    for (const s of [-1, 1]) {
+      const cx = s * .13 * easeBack(a), cy = yR - .04;
+      const e = Math.hypot((x - cx) / .13, (y - cy) / .065);
+      if (e > .5 && e < 1) { put(idx, clamp((.45 + .5 * (e - .5) / .5) * a), K.RIBBON); return; }
+    }
+    if (Math.hypot(x, (y - yR + .01) * 1.3) < .035) put(idx, .95 * a, K.RIBBON);
+  });
+  for (const s of [-1, 1]) {
+    const m = Math.ceil(.32 * Lc.S / Lc.ch * 1.3);
+    for (let q = 0; q <= m * a; q++) {
+      const tt = q / m;
+      const x = s * (.02 + tt * .15) + .018 * Math.sin(tt * 6 + t * 1.2 + s);
+      const y = yR + .02 + tt * .3;
+      putAt(x, y, .7, K.RIBBON, 0);
+      putAt(x + s * .012, y, .5, K.RIBBON, 0);
+    }
+  }
+}
+
+/* rasterizează întreaga scenă la timpul t (bt = secunde de la înflorire) */
+function rasterize(L, scene, t, bt, lean) {
+  Lc = L;
+  for (const idx of L.used) { L.kind[idx] = 0; L.chr[idx] = 0; L.inUsed[idx] = 0; }
+  L.used.length = 0;
+  if (bt < 0) return;
+
+  rasterWrap(bt, t, true);
+
+  const heads = scene.flowers.map(f => {
+    const a = swayAngle(f, t, lean);
+    const [px, py] = rotAround(f.x, f.y, a);
+    const g = easeOut((bt - f.start + 1.0) / 1.0);
+    const hx = bez(G.x + px * .07, px * .5, px, g), hy = bez(G.y, (py + G.y) / 2 + .06, py, g);
+    return { f, px, py, g, hx, hy, b: clamp((bt - f.start) / 1.6) };
+  });
+  for (const h of heads) if (h.g > 0) drawStem(h.px, h.py, h.g);
+
+  rasterWrap(bt, t, false);
+  rasterRibbon(bt, t);
+
+  for (const l of scene.leaves) {
+    const a = swayAngle(l, t, lean);
+    const [px, py] = rotAround(l.x, l.y, a);
+    rasterLeaf(l, px, py, l.ang + a * 1.5 + .05 * Math.sin(t * .9 + l.ph), clamp((bt - l.start) / 1.2), t);
+  }
+
+  for (const br of scene.breath) {
+    const k = bt - br.start; if (k < 0) continue;
+    const a = swayAngle(br, t, lean);
+    const [px, py] = rotAround(br.x, br.y, a);
+    br.dots.forEach((d, q) => {
+      const life = k - q * .09; if (life < 0) return;
+      const tw = .5 + .4 * Math.sin(t * 2.2 + d.ph) + .5 * FX.pulse;
+      const ch = life < .15 ? 46 : life < .3 ? 183 : d.ch.charCodeAt(0);
+      putAt(px + d.dx, py + d.dy, clamp(tw), K.BREATH, ch);
+    });
+  }
+
+  for (const h of heads) {
+    if (h.b <= 0) {
+      if (h.g > .3) putAt(h.hx, h.hy, .6, h.f.type === "lily" ? K.LILY : K.ROSE, 111); // boboc
+      continue;
+    }
+    const x = h.b < 1 ? h.hx : h.px, y = h.b < 1 ? h.hy : h.py;
+    if (h.f.type === "rose") rasterRose(h.f, x, y, easeBack(h.b), t);
+    else if (h.f.type === "lily") rasterLily(h.f, x, y, h.b, t);
+    else rasterCluster(h.f, x, y, h.b, t);
+  }
+}
+
+/* ============================================================
+   culori + pictare
+   ============================================================ */
+function buildPalette(p) {
+  const table = [];
+  for (let k = 0; k < KIND_COLOR.length; k++) {
+    table[k] = [];
+    if (!KIND_COLOR[k]) continue;
+    const [d, l] = p[KIND_COLOR[k]].map(hexRgb);
+    for (let q = 0; q < LV; q++) {
+      const tt = (q + .5) / LV, m = KIND_DIM[k];
+      const c = d.map((dv, z) => Math.round((dv + (l[z] - dv) * tt) * m));
+      table[k][q] = `rgb(${c[0]},${c[1]},${c[2]})`;
+    }
+  }
+  return { ...p, table, bgRgb: hexRgb(p.bg) };
+}
+const PALS = CONFIG.bouquets.map(b => buildPalette(b.pal));
+const NB = PALS.length;
+const buckets = [];
+for (let q = 0; q < NB * 16 * LV; q++) buckets.push([]);
+
+function paint(ctx, L, t, trans, alpha = 1) {
+  const { cols, cw, ch } = L;
+  const now = trans ? trans.now : 0;
+  const rad = trans ? (now - trans.t0) * trans.speed : 1e9;
+  const from = trans ? trans.from : 0, to = trans ? trans.to : 0;
+  const tick = Math.floor(t * 4);
+  const keys = [];
+  const chars = paint.chars || (paint.chars = []);
+  for (const idx of L.used) {
+    const k = L.kind[idx]; if (!k) continue;
+    const i = idx % cols, j = (idx / cols) | 0;
+    let v = L.val[idx] + (hash3(i, j, tick + (hash3(i, j, 1) * 4 | 0)) - .5) * .06;
+    let pal = to, c = L.chr[idx];
+    if (trans && rad < 1e8) {
+      const d = Math.hypot(i * cw - trans.ox, j * ch - trans.oy);
+      if (d > rad) pal = from;
+      else if (rad - d < 46) { v += .45; c = "@#%*+="[(hash3(i, j, tick) * 6) | 0].charCodeAt(0); }
+    }
+    v = clamp(v);
+    let s;
+    if (c) s = String.fromCharCode(c);
+    else { const r = RAMP[k]; s = r[Math.min(r.length - 1, (v * r.length) | 0)]; }
+    if (s === " ") continue;
+    chars[idx] = s;
+    const key = (pal * 16 + k) * LV + Math.min(LV - 1, (v * LV) | 0);
+    const bk = buckets[key];
+    if (bk.length === 0) keys.push(key);
+    bk.push(idx);
+  }
+  ctx.font = `${L.fontPx}px "JetBrains Mono", ui-monospace, monospace`;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.globalAlpha = alpha;
+  for (const key of keys) {
+    const bk = buckets[key];
+    const lvl = key % LV, k = ((key / LV) | 0) % 16, pal = (key / LV / 16) | 0;
+    ctx.fillStyle = PALS[pal].table[k][lvl];
+    for (const idx of bk) ctx.fillText(chars[idx], (idx % cols) * cw + cw / 2, ((idx / cols) | 0) * ch + ch / 2);
+    bk.length = 0;
+  }
+  ctx.globalAlpha = 1;
+}
+
+function paintStars(ctx, W, H, stars, t, fontPx, alpha = 1) {
+  ctx.font = `${fontPx}px "JetBrains Mono", monospace`;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  for (const s of stars) {
+    ctx.fillStyle = `rgba(220,226,255,${(s.a * (.55 + .45 * Math.sin(t * s.sp + s.ph)) * alpha).toFixed(3)})`;
+    ctx.fillText(s.ch, s.x * W, s.y * H);
+  }
+}
+
+/* ============================================================
+   aplicația live
+   ============================================================ */
+const main = document.getElementById("main"), mctx = main.getContext("2d");
+const glow = document.getElementById("glow"), gctx = glow.getContext("2d");
+const scene = buildScene(CONFIG.seed);
+const $ = id => document.getElementById(id);
+
+const audio = $("song");
+const M = CONFIG.music;
+
+const state = {
+  started: false, musicOn: false, ended: false, clockRunning: false,
+  clock: 0, clockStamp: 0, prevClock: -1, lastFrame: 0,
+  pal: 0, trans: null, lastTap: -1e9, outro: false, uiShown: false, introLine: 0,
+  lean: 0, leanV: 0, leanTarget: 0, swayT: 0, E: .3, flash: 0,
+  petals: [], lastPetal: 0, letterShown: false,
+  seen: new Set([0]), W: 0, H: 0, dpr: 1, L: null
+};
+try { const s = JSON.parse(localStorage.getItem("melissa-seen") || "[]"); s.forEach(x => state.seen.add(x)); } catch (e) {}
+
+// florile se deschid pe beat-uri, nu la întâmplare
+for (const el of [...scene.flowers, ...scene.leaves, ...scene.breath]) el.start = snapToBeat(M.bloomAt + el.start) - M.bloomAt;
+
+function layoutLive() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  const W = innerWidth, H = innerHeight;
+  state.W = W; state.H = H; state.dpr = dpr;
+  main.width = W * dpr; main.height = H * dpr;
+  glow.width = Math.ceil(W / 3); glow.height = Math.ceil(H / 3);
+  const top = 58, bottom = W < 600 ? 150 : 140;
+  const hav = H - top - bottom;
+  const S = Math.min(W * .94 / 2.24, hav / 2.37);
+  const cy = top + hav / 2 - .235 * S;
+  const fontPx = clamp(S * 2.37 / (W < 600 ? 62 : 72), 5, 15);
+  state.L = makeLayout(W, H, S, W / 2, cy, fontPx, mctx);
+  $("screenRes").textContent = `ecranul tău · ${Math.round(screen.width * (window.devicePixelRatio || 1))} × ${Math.round(screen.height * (window.devicePixelRatio || 1))}`;
+}
+
+/* ---------- ceasul: urmează piesa, iar fără ea merge singur ---------- */
+function tickClock(now) {
+  const dt = now - state.clockStamp; state.clockStamp = now;
+  let pred = state.clock + (state.clockRunning ? dt : 0);
+  if (state.musicOn && !audio.paused && !audio.ended && audio.readyState > 2) {
+    const ct = audio.currentTime;
+    if (Math.abs(ct - pred) > .25) pred = ct; else pred += (ct - pred) * .08;
+  }
+  state.clock = pred;
+}
+const crossed = (a, b, x) => a < x && b >= x;
+
+function handleTimeline(a, b) {
+  if (a < 0) return;
+  M.introLines.forEach((at, k) => { if (crossed(a, b, at) && state.introLine === k) typeIntroLine(k); });
+  if (crossed(a, b, M.introOut)) $("intro").classList.add("hidden");
+  if (!state.uiShown && b >= M.bloomAt + 5.5) showUI();
+  if (!state.musicOn) return;
+  for (const c of M.chapters) {
+    if (!crossed(a, b, c.at)) continue;
+    if (c.burst) burst();
+    if (c.pal != null && c.pal !== state.pal && b - state.lastTap > 8) changePalette(c.pal, state.W / 2, state.L.cy + .1 * state.L.S);
+  }
+  if (crossed(a, b, M.outroAt)) showOutro();
+}
+
+function showUI() {
+  state.uiShown = true;
+  setCaption(state.pal, true);
+  $("caption").classList.remove("hidden"); $("again").classList.remove("hidden"); $("topRight").classList.remove("hidden");
+  if (state.seen.size === NB) $("letterBtn").classList.remove("hidden");
+}
+function showOutro() {
+  state.outro = true;
+  $("name").classList.add("swap"); $("msg").classList.add("swap");
+  setTimeout(() => {
+    $("name").textContent = M.outro.name; $("msg").textContent = M.outro.msg;
+    $("name").classList.remove("swap"); $("msg").classList.remove("swap");
+  }, 700);
+}
+function burst() {
+  state.flash = .55; state.leanV += .09;
+  for (let k = 0; k < 22; k++) spawnPetal(state.swayT, 99, k * .04);
+}
+
+function spawnPetal(t, bt, delay = 0) {
+  const opened = scene.flowers.filter(f => bt > f.start + 1.6);
+  if (!opened.length) return;
+  const f = opened[(Math.random() * opened.length) | 0];
+  const [px, py] = rotAround(f.x, f.y, swayAngle(f, t, state.lean));
+  state.petals.push({ x: px + (Math.random() - .5) * f.r, y: py, vx: (Math.random() - .3) * .06, vy: .05 + Math.random() * .06,
+    born: state.lastFrame + delay, life: 7 + Math.random() * 5, ch: "*'`,.o~"[(Math.random() * 7) | 0], ph: Math.random() * TAU,
+    kind: f.type === "lily" ? "lily" : f.type === "cluster" ? "cluster" : "rose" });
+}
+
+function frame(ms) {
+  const now = ms / 1000;
+  const dt = clamp(now - state.lastFrame, 0, .1); state.lastFrame = now;
+  const { W, H, dpr, L } = state;
+  tickClock(now);
+  const mt = state.clock;
+  const bt = state.started ? mt - M.bloomAt : -1;
+
+  // muzica → mișcare: energia piesei dă amplitudinea, accentele dau „respirația”
+  const eRaw = state.musicOn ? envAt(ENV, mt) : .35;
+  state.E += (eRaw - state.E) * (eRaw > state.E ? .2 : .05);
+  let pulse = 0;
+  const bi = state.musicOn && mt < SONG.dur ? lastBeat(mt) : -1;
+  if (bi >= 0) pulse = Math.exp(-(mt - SONG.beats[bi]) * 7) * clamp((SONG.accent[bi] - .25) / .75) * (.45 + .8 * state.E);
+  FX.pulse = clamp(pulse); FX.amp = .6 + .85 * state.E;
+  state.swayT += dt * (.5 + .95 * state.E);
+  state.flash *= .95;
+  glow.style.opacity = clamp(.45 + .3 * state.E + .4 * FX.pulse + state.flash, 0, 1.2).toFixed(3);
+
+  handleTimeline(state.prevClock, mt); state.prevClock = mt;
+
+  // vânt: arc amortizat spre poziția cursorului
+  state.leanV += ((state.leanTarget - state.lean) * 2.2 - state.leanV * 1.6) * dt;
+  state.lean += state.leanV * dt;
+
+  mctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  mctx.clearRect(0, 0, W, H);
+  paintStars(mctx, W, H, scene.stars, now, Math.max(8, L.fontPx * 1.1), 1.35 - .6 * state.E);
+
+  rasterize(L, scene, state.swayT, bt, state.lean);
+  const tr = state.trans;
+  if (tr) { tr.now = now; if ((now - tr.t0) * tr.speed > Math.hypot(W, H) + 60) state.trans = null; }
+  paint(mctx, L, now, state.trans ? state.trans : { now, t0: -1e9, speed: 1, from: state.pal, to: state.pal, ox: 0, oy: 0 });
+
+  // petale căzătoare: mai multe când muzica e plină
+  if (bt > 6 && now - state.lastPetal > 1.8 - 1.4 * state.E) { spawnPetal(state.swayT, bt); state.lastPetal = now; }
+  const P = PALS[state.pal];
+  mctx.font = `${L.fontPx * 1.1}px "JetBrains Mono", monospace`;
+  state.petals = state.petals.filter(p => {
+    const age = now - p.born; if (age > p.life) return false;
+    if (age < 0) return true;
+    const x = p.x + p.vx * age + .05 * Math.sin(age * 1.3 + p.ph) + state.lean * .3;
+    const y = p.y + p.vy * age;
+    const a = Math.min(1, age * 2) * (1 - age / p.life);
+    mctx.globalAlpha = a * .85;
+    mctx.fillStyle = P.table[p.kind === "lily" ? K.LILY : p.kind === "cluster" ? K.CLUSTER : K.ROSE][LV - 2];
+    mctx.fillText(p.ch, L.cx + x * L.S, L.cy + y * L.S);
+    return true;
+  });
+  mctx.globalAlpha = 1;
+
+  gctx.clearRect(0, 0, glow.width, glow.height);
+  gctx.drawImage(main, 0, 0, glow.width, glow.height);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- interfață ---------- */
+function renderDots() {
+  $("dots").innerHTML = PALS.map((_, i) => `<i class="${i === state.pal ? "now" : state.seen.has(i) ? "seen" : ""}"></i>`).join("");
+}
+function setCaption(i, instant) {
+  const b = CONFIG.bouquets[i];
+  const apply = () => {
+    $("name").textContent = b.name;
+    $("msg").textContent = i === 0 && state.seen.size === 1 ? `${CONFIG.name}, atinge oriunde ca să schimbi culoarea` : b.msg;
+    document.documentElement.style.setProperty("--accent", b.pal.accent);
+    document.body.style.backgroundColor = b.pal.bg;
+    renderDots();
+    $("name").classList.remove("swap"); $("msg").classList.remove("swap");
+  };
+  if (instant) return apply();
+  $("name").classList.add("swap"); $("msg").classList.add("swap");
+  setTimeout(apply, 450);
+}
+function changePalette(to, ox, oy) {
+  // cu muzica pornită, schimbarea pleacă exact pe următorul beat
+  let delay = 0;
+  if (state.musicOn && state.clock < SONG.dur) {
+    const nb = SONG.beats[lastBeat(state.clock) + 1];
+    if (nb != null && nb - state.clock < .45) delay = nb - state.clock;
+  }
+  const go = () => {
+    const now = performance.now() / 1000;
+    const from = state.trans ? state.trans.to : state.pal;
+    state.trans = { from, to, t0: now, speed: 900, ox, oy, now };
+    state.pal = to;
+    state.leanV += (ox < state.W / 2 ? 1 : -1) * .12;
+    state.flash = Math.max(state.flash, .25);
+    const wasComplete = state.seen.size === NB;
+    state.seen.add(to);
+    try { localStorage.setItem("melissa-seen", JSON.stringify([...state.seen])); } catch (e) {}
+    setCaption(to);
+    if (!wasComplete && state.seen.size === NB) setTimeout(openLetter, 2600);
+    if (state.seen.size === NB) $("letterBtn").classList.remove("hidden");
+  };
+  delay > 0 ? setTimeout(go, delay * 1000) : go();
+}
+function nextPalette(ox, oy) {
+  state.lastTap = state.clock;
+  state.outro = false;
+  changePalette((state.pal + 1) % NB, ox, oy);
+}
+
+function rebloom() {
+  state.petals = []; state.trans = null; state.outro = false; state.uiShown = false; state.ended = false;
+  $("caption").classList.add("hidden");
+  $("musicBtn").textContent = "♪";
+  const at = M.bloomAt - 1.6;
+  state.clock = at; state.prevClock = at; state.clockRunning = true;
+  playFrom(at);
+}
+async function playFrom(at) {
+  try {
+    audio.currentTime = at;
+    await audio.play();
+    state.musicOn = true;
+    $("musicBtn").classList.toggle("off", audio.muted);
+  } catch (e) {
+    state.musicOn = false;
+    $("musicBtn").classList.add("off");
+  }
+}
+audio.addEventListener("ended", () => {
+  state.ended = true; state.musicOn = false;
+  $("musicBtn").textContent = "↻ ♪";
+  if (state.seen.size === NB && !state.letterShown) setTimeout(openLetter, 2500);
+});
+audio.addEventListener("error", () => { state.musicOn = false; $("musicBtn").classList.add("off"); });
+
+$("musicBtn").onclick = e => {
+  e.stopPropagation();
+  if (state.ended) return rebloom();
+  if (!state.musicOn || audio.paused) { audio.muted = false; return playFrom(clamp(state.clock, 0, SONG.dur - .5)); }
+  audio.muted = !audio.muted;
+  $("musicBtn").classList.toggle("off", audio.muted);
+};
+
+window.addEventListener("pointermove", e => { state.leanTarget = -((e.clientX - state.W / 2) / state.W) * .07; });
+window.addEventListener("pointerleave", () => state.leanTarget = 0);
+document.addEventListener("pointerdown", e => {
+  if (!state.started || state.clock - M.bloomAt < 2) return;
+  if (e.target.closest(".pill, #wpMenu, .overlay, #dots")) return;
+  if (!$("wpMenu").classList.contains("hidden")) { $("wpMenu").classList.add("hidden"); return; }
+  nextPalette(e.clientX, e.clientY);
+});
+window.addEventListener("keydown", e => {
+  if (!state.started) { if (e.key === "Enter" || e.key === " ") begin(); return; }
+  if (state.clock - M.bloomAt < 2) return;
+  if (e.key === " " || e.key === "ArrowRight") nextPalette(state.W / 2, state.H / 2);
+  if (e.key === "r") rebloom();
+  if (e.key === "m") $("musicBtn").click();
+});
+$("again").onclick = e => { e.stopPropagation(); rebloom(); };
+$("wpBtn").onclick = e => { e.stopPropagation(); $("wpMenu").classList.toggle("hidden"); };
+$("wpMenu").querySelectorAll("button").forEach(b => b.onclick = () => { $("wpMenu").classList.add("hidden"); makeWallpaper(b.dataset.wp); });
+$("closePrev").onclick = () => $("preview").classList.add("hidden");
+$("closeLetter").onclick = () => $("letter").classList.add("hidden");
+$("letterBtn").onclick = e => { e.stopPropagation(); openLetter(); };
+addEventListener("resize", layoutLive);
+document.addEventListener("visibilitychange", () => { state.clockStamp = performance.now() / 1000; });
+
+/* ---------- intro: scris cu mașina de scris, pe muzică ---------- */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function typeInto(el, text, speed = 42) {
+  el.classList.add("cursor");
+  for (let i = 0; i <= text.length; i++) { el.textContent = text.slice(0, i); await sleep(speed + (text[i - 1] === "," || text[i - 1] === "." ? 260 : 0)); }
+  el.classList.remove("cursor");
+}
+async function runIntro() {
+  await sleep(600);
+  await typeInto($("introFor"), `pentru ${CONFIG.name}`, 85);
+  await sleep(400);
+  if (!state.started) $("introTap").classList.add("on");
+}
+function typeIntroLine(k) {
+  state.introLine = k + 1;
+  const d = document.createElement("div"); d.className = "line"; $("introLines").appendChild(d);
+  typeInto(d, CONFIG.intro[k], 38);
+}
+function begin() {
+  if (state.started) return;
+  state.started = true; state.clockRunning = true;
+  state.clock = 0; state.prevClock = 0; state.clockStamp = performance.now() / 1000;
+  $("introTap").classList.remove("on"); $("introTap").style.visibility = "hidden";
+  audio.muted = false;
+  playFrom(0);
+}
+$("intro").addEventListener("click", begin);
+
+async function openLetter() {
+  state.letterShown = true;
+  const box = $("letterText"); box.innerHTML = "";
+  $("letter").classList.remove("hidden");
+  for (const line of CONFIG.finalLetter) {
+    const p = document.createElement("p"); box.appendChild(p);
+    await typeInto(p, line, 34); await sleep(260);
+  }
+  const sig = document.createElement("p"); sig.className = "sig"; box.appendChild(sig);
+  await typeInto(sig, CONFIG.from ? `— cu drag, ${CONFIG.from}` : "— cu drag", 50);
+}
+
+/* ============================================================
+   wallpaper (randare statică la rezoluție mare)
+   ============================================================ */
+async function makeWallpaper(kind) {
+  $("preview").classList.remove("hidden");
+  $("previewImg").style.display = "none"; $("busy").style.display = "block";
+  await sleep(60);
+  const dprS = window.devicePixelRatio || 1;
+  let W, H, phone = false;
+  if (kind === "phone") { W = 1080; H = 2340; phone = true; }
+  else if (kind === "4k") { W = 3840; H = 2160; }
+  else { W = Math.round(screen.width * dprS); H = Math.round(screen.height * dprS); if (W < H) [W, H] = [H, W]; }
+
+  const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+  const c = cv.getContext("2d");
+  const P = PALS[state.pal], B = CONFIG.bouquets[state.pal];
+
+  let S, cy, fontPx;
+  if (phone) { S = Math.min(W * .94 / 2.24, H * .5 / 2.37); cy = H * .565 - .235 * S; fontPx = S * 2.37 / 78; }
+  else { S = Math.min(W * .9 / 2.24, H * .74 / 2.37); cy = H * .46 - .235 * S; fontPx = S * 2.37 / 84; }
+  const L = makeLayout(W, H, S, W / 2, cy, fontPx, c);
+
+  // fundal
+  const [r, g, b] = P.bgRgb;
+  c.fillStyle = P.bg; c.fillRect(0, 0, W, H);
+  const rg = c.createRadialGradient(W / 2, cy + .2 * S, 0, W / 2, cy + .2 * S, Math.max(W, H) * .75);
+  const acc = hexRgb(P.accent);
+  rg.addColorStop(0, `rgba(${acc[0]},${acc[1]},${acc[2]},0.07)`); rg.addColorStop(1, `rgba(${r},${g},${b},0)`);
+  c.fillStyle = rg; c.fillRect(0, 0, W, H);
+  paintStars(c, W, H, scene.stars, 3.3, fontPx * 1.1, .8);
+
+  // buchetul, complet înflorit, într-o poză frumoasă
+  const T = 41.7;
+  const layer = document.createElement("canvas"); layer.width = W; layer.height = H;
+  const lc = layer.getContext("2d");
+  const fxSave = { ...FX }; FX.amp = 1; FX.pulse = 0;
+  rasterize(L, scene, T, 60, 0);
+  Object.assign(FX, fxSave);
+  paint(lc, L, T, null);
+
+  // strălucire: micșorare + mărire = blur ieftin, merge în orice browser
+  for (const [div, a] of [[6, .55], [16, .5]]) {
+    const sm = document.createElement("canvas"); sm.width = Math.ceil(W / div); sm.height = Math.ceil(H / div);
+    const sc = sm.getContext("2d"); sc.imageSmoothingEnabled = true; sc.imageSmoothingQuality = "high";
+    sc.drawImage(layer, 0, 0, sm.width, sm.height);
+    c.save(); c.globalAlpha = a; c.globalCompositeOperation = "lighter"; c.imageSmoothingQuality = "high";
+    c.drawImage(sm, 0, 0, W, H); c.restore();
+  }
+  c.drawImage(layer, 0, 0);
+
+  // text
+  const base = cy + 1.42 * S;
+  const nameY = phone ? base + H * .055 : Math.min(H * .925, base + H * .065);
+  c.textAlign = "center"; c.textBaseline = "middle";
+  c.font = `italic ${Math.round((phone ? W : H) * (phone ? .052 : .034))}px "Instrument Serif", Georgia, serif`;
+  c.shadowColor = P.accent; c.shadowBlur = (phone ? W : H) * .02;
+  c.fillStyle = P.accent; c.fillText(B.name, W / 2, nameY);
+  c.shadowBlur = 0;
+  const small = Math.round((phone ? W : H) * (phone ? .019 : .0115));
+  c.font = `${small}px "JetBrains Mono", monospace`;
+  c.fillStyle = "rgba(233,231,242,.5)";
+  const spaced = `pentru ${CONFIG.name}`.split("").join(String.fromCharCode(8202));
+  c.fillText(spaced, W / 2, nameY + small * 2.6);
+
+  // vignetă
+  const vg = c.createRadialGradient(W / 2, H * .5, Math.min(W, H) * .4, W / 2, H * .5, Math.max(W, H) * .78);
+  vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,.5)");
+  c.fillStyle = vg; c.fillRect(0, 0, W, H);
+
+  cv.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    const img = $("previewImg"); img.src = url; img.style.display = "block";
+    $("busy").style.display = "none";
+    const slug = B.name.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-");
+    $("dlLink").href = url; $("dlLink").download = `melissa-${slug}-${W}x${H}.png`;
+  }, "image/png");
+}
+
+/* ---------- pornire ---------- */
+const fontsReady = Promise.race([
+  Promise.all([document.fonts.load('12px "JetBrains Mono"'), document.fonts.load('italic 20px "Instrument Serif"')]).catch(() => {}),
+  sleep(1800)
+]);
+fontsReady.then(() => {
+  layoutLive();
+  renderDots();
+  requestAnimationFrame(frame);
+  runIntro();
+  if (new URLSearchParams(location.search).has("skip")) {
+    state.started = true; state.clockRunning = true; state.introLine = 99;
+    state.clock = state.prevClock = M.bloomAt - .3; state.clockStamp = performance.now() / 1000;
+    $("intro").classList.add("hidden");
+  }
+});
+</script>
+</body>
+</html>
